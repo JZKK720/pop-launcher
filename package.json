@@ -33,7 +33,7 @@
     ],
     "win": {
       "target": [{ "target": "nsis", "arch": ["x64"] }],
-      "icon": "assets/cubecloud-logo-blue.png"
+      "icon": "assets/cubecloud-logo-blue.ico"
     },
     "nsis": {
       "oneClick": false,
@@ -41,8 +41,8 @@
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true,
       "shortcutName": "智方云cubecloud",
-      "installerIcon": "assets/cubecloud-logo-blue.png",
-      "uninstallerIcon": "assets/cubecloud-logo-blue.png",
+      "installerIcon": "assets/cubecloud-logo-blue.ico",
+      "uninstallerIcon": "assets/cubecloud-logo-blue.ico",
       "runAfterFinish": true
     }
   }
