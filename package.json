@@ -1,7 +1,7 @@
 {
   "name": "cubecloud",
   "productName": "智方云cubecloud",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "智方云cubecloud desktop app-access board",
   "author": "智方云 cubecloud.io",
   "main": "main.js",
