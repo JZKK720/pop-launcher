@@ -19,6 +19,24 @@ It lets users launch local EXE programs or localhost URLs in one click, and mana
 
 ---
 
+## Build & Delivery Model
+
+- Start with native Windows packaging as the primary delivery path for this repo and this machine.
+- Treat the Dockerized HTTP build service as a local trial and smoke-test path until it is explicitly promoted beyond testing.
+- The two build paths must stay aligned on installer output semantics:
+  - Primary path: `npm run build` or `npm run build:win` produces the installer in `dist/`
+  - Trial path: `npm run start:build-service` or `npm run docker:build-service` runs `tools/build-agent/server.js`, stores job state in `build-service-data/`, exports installers to `artifacts/`, and uses `docker-dist/` inside the container
+- The Docker build service builds and serves the installer only. It does **not** replace the Electron app as the product runtime.
+- When deciding where to work first, fix or validate the native installer flow before spending time on Docker build-service work.
+- The installed launcher must keep working with:
+  - absolute local Windows paths opened through `open-app`
+  - `http://` or `https://` URLs opened through `open-url`
+  - localhost ports published from other local Docker containers
+- For reverse-proxy, webhook, or Cloudflare exposure, expose only the HTTP build service. Keep `BUILD_TOKEN` support and preserve forwarded-header handling in `tools/build-agent/server.js` so generated URLs stay correct behind a proxy.
+- Prefer linking to [README.md](../README.md) and [README_CN.md](../README_CN.md) for operator steps and endpoint examples instead of duplicating them inside new customization files.
+
+---
+
 ## Branding Rules
 
 - **App name**: `智方云cubecloud` — no tagline, no description
@@ -58,11 +76,16 @@ It lets users launch local EXE programs or localhost URLs in one click, and mana
 ## File Structure
 
 ```
-pop-installater/
+pop-launcher/
 ├── .github/
 │   ├── copilot-instructions.md   ← this file
 │   └── agents/
-│       └── pop-installer-builder.agent.md
+│       ├── app-builder.agent.md
+│       ├── build-service-builder.agent.md
+│       └── release-builder.agent.md
+├── .env.example                 # Build-service environment defaults
+├── Dockerfile                   # Containerized build-service image
+├── docker-compose.yml           # Local build-service orchestration
 ├── main.js                       # Electron main process
 ├── preload.js                    # contextBridge IPC exposure
 ├── package.json                  # Electron + electron-builder config
@@ -75,7 +98,11 @@ pop-installater/
 │   ├── cubecloud-logo-white.png  # Alternate white variant
 │   ├── cubecloud-logo-black.png  # Alternate black variant
 │   └── figma/                   # Figma design PNG exports (reference only)
-└── dist/                         # electron-builder output (gitignored)
+├── tools/build-agent/
+│   └── server.js                 # HTTP build service for installer jobs and artifact download
+├── dist/                         # Native electron-builder output (gitignored)
+├── artifacts/                    # Build-service exported installers (generated)
+└── build-service-data/           # Build-service job metadata and logs (generated)
 ```
 
 ---
@@ -159,6 +186,7 @@ pop-installater/
 - `win.icon`: `assets/cubecloud-logo-blue.png` (electron-builder auto-converts to `.ico`)
 - `productName`: `智方云cubecloud`
 - NSIS shortcut name: `智方云cubecloud`
+- Keep native builds writing to `dist/`; the Docker build service must keep overriding its output directory to `docker-dist/` so the two delivery paths do not trample each other
 - Do not build for macOS or Linux targets
 
 ---

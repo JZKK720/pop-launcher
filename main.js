@@ -20,6 +20,7 @@ const userDataAppsPath = () => path.join(app.getPath('userData'), 'apps.json');
 const userDataIconsDir = () => path.join(app.getPath('userData'), 'icons');
 const bundledAppsPath  = path.join(__dirname, 'src', 'renderer', 'apps.json');
 const bundledIconsDir  = path.join(__dirname, 'src', 'renderer', 'icons');
+const appIconPath      = path.join(__dirname, 'assets', 'cubecloud-app-icon.png');
 
 // ── Seed userData on first launch ─────────────────────────────────────────────
 const OLD_DEFAULT_COLORS = new Set(['#1a1a1a', '#2a2a2a', '#1e3a8a', '#2d4fb8']);
@@ -61,7 +62,7 @@ function createWindow() {
     resizable:   false,
     skipTaskbar: false,
     show:        false,
-    icon:        path.join(__dirname, 'assets', 'cubecloud-logo-blue.png'),
+    icon:        appIconPath,
     webPreferences: {
       preload:          path.join(__dirname, 'preload.js'),
       contextIsolation: true,
@@ -83,8 +84,7 @@ function createWindow() {
 
 // ── Tray ──────────────────────────────────────────────────────────────────────
 function createTray() {
-  const iconPath = path.join(__dirname, 'assets', 'cubecloud-logo-blue.png');
-  const icon = nativeImage.createFromPath(iconPath).resize({ width: 16, height: 16 });
+  const icon = nativeImage.createFromPath(appIconPath).resize({ width: 16, height: 16 });
   tray = new Tray(icon);
   tray.setToolTip('智方云cubecloud');
 
