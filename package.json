@@ -9,6 +9,13 @@
     "start": "electron .",
     "build": "npm run build:win",
     "build:win": "electron-builder --win --x64",
+    "sync:release-metadata": "node tools/sync-release-metadata.js",
+    "skills:kickoff": "pwsh -File tools/skill-integration/apply-skill-integration.ps1",
+    "skills:apply": "pwsh -File tools/skill-integration/apply-skill-integration.ps1",
+    "skills:apply:dry": "pwsh -File tools/skill-integration/apply-skill-integration.ps1 -DryRun",
+    "skills:rollback": "pwsh -File tools/skill-integration/rollback-skill-integration.ps1",
+    "skills:rollback:dry": "pwsh -File tools/skill-integration/rollback-skill-integration.ps1 -DryRun",
+    "skills:verify": "pwsh -File tools/skill-integration/verify-skill-integration.ps1",
     "start:build-service": "node tools/build-agent/server.js",
     "docker:build-service": "docker compose up --build build-service",
     "docker:build-service:down": "docker compose down"

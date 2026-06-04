@@ -471,7 +471,10 @@ async function handleListBuilds(req, res, url) {
   }
 
   const baseUrl = buildBaseUrl(req, url);
-  const limit = Math.max(1, Math.min(50, parseInt(url.searchParams.get('limit') || '20', 10)));
+  const parsedLimit = parseInt(url.searchParams.get('limit') || '20', 10);
+  const limit = Number.isFinite(parsedLimit)
+    ? Math.max(1, Math.min(50, parsedLimit))
+    : 20;
   json(res, 200, {
     jobs: selectJobs(limit).map((job) => createJobResponse(job, baseUrl)),
     activeJobId,

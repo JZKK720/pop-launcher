@@ -117,7 +117,7 @@
       align-content: flex-start;
       height: 428px;
       overflow-y: auto;
-      padding-bottom: 52px;
+      padding-bottom: 16px;
     }
 
     .icon-grid::-webkit-scrollbar { display: none; }
@@ -213,37 +213,42 @@
       z-index: 50;
     }
 
-    /* ── Minimize footer ── */
-    .footer-min {
+    /* ── Window controls (traffic-light dots) ── */
+    .win-controls {
       position: absolute;
-      bottom: 0;
-      left: 0; right: 0;
-      height: 44px;
+      top: 14px;
+      right: 16px;
       display: flex;
       align-items: center;
-      justify-content: center;
-      border-top: 1px solid rgba(255,255,255,.10);
-      background: rgba(18,42,100,.60);
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
-      border-radius: 0 0 26px 26px;
+      gap: 8px;
+      -webkit-app-region: no-drag;
+      z-index: 10;
     }
 
-    .btn-minimize {
-      background: transparent;
+    .wc-btn {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
       border: none;
-      color: rgba(255,255,255,.55);
-      font-size: 16px;
-      font-weight: 900;
-      letter-spacing: 4px;
-      line-height: 1;
       cursor: pointer;
-      padding: 2px 16px 5px;
-      border-radius: 8px;
-      transition: background .15s, color .15s;
+      background: rgba(255,255,255,.22);
+      transition: background .15s, transform .1s;
+      padding: 0;
+      flex-shrink: 0;
     }
 
-    .btn-minimize:hover { background: rgba(255,255,255,.08); color: rgba(255,255,255,.9); }
+    .wc-btn:active { transform: scale(.82); }
+
+    .win-controls:hover .wc-close    { background: #ff5f57; }
+    .win-controls:hover .wc-minimize { background: #ffbd2e; }
+    .win-controls:hover .wc-restore  { background: #28c840; }
+
+    /* ── Drag-to-reorder ── */
+    .icon-card.dragging { opacity: .35; cursor: grabbing; }
+    .icon-card[draggable="true"]:not(.add-tile) { cursor: grab; }
+    .icon-card.drag-over .icon-item {
+      box-shadow: 0 0 0 2px var(--accent-blue), 0 4px 14px rgba(0,0,0,.18);
+    }
 
     /* ── Copyright ── */
     .copyright {
@@ -483,8 +488,11 @@
 
     <div class="status-tip" id="statusTip"></div>
 
-    <div class="footer-min">
-      <button class="btn-minimize" id="btnMinimize" type="button" title="最小化">___</button>
+    <!-- ── Window controls ── -->
+    <div class="win-controls">
+      <button class="wc-btn wc-close"    id="btnClose"    type="button" title="关闭到托盘"></button>
+      <button class="wc-btn wc-minimize" id="btnMinimize" type="button" title="最小化"></button>
+      <button class="wc-btn wc-restore"  id="btnRestore"  type="button" title="恢复/调整窗口"></button>
     </div>
 
     <span class="copyright">&copy; 智方云 cubecloud.io</span>
@@ -558,6 +566,7 @@
     let editIndex      = -1;   // -1 = add mode, >= 0 = edit mode
     let pendingIconSrc = '';   // full local path of chosen icon (before save)
     let pendingIconRel = '';   // relative path after copy  (icons/filename)
+    let dragSrcIndex   = -1;   // appList index being dragged (-1 = none)
 
     // ── DOM refs ───────────────────────────────────────────────────────────────
     const iconGrid       = document.getElementById('iconGrid');
@@ -596,7 +605,7 @@
     async function renderGrid(list) {
       iconGrid.innerHTML = '';
 
-      if (!list.length && !appList.length) {
+      if (!list.length) {
         const tip = document.createElement('div');
         tip.className = 'empty-tip';
         tip.textContent = '没有匹配到应用';
@@ -640,6 +649,38 @@
         card.appendChild(item);
         card.appendChild(label);
         iconGrid.appendChild(card);
+
+        // Drag-to-reorder — only when list is unfiltered
+        if (list === appList) {
+          card.draggable = true;
+          card.addEventListener('dragstart', (e) => {
+            dragSrcIndex = realIndex;
+            e.dataTransfer.effectAllowed = 'move';
+            setTimeout(() => card.classList.add('dragging'), 0);
+          });
+          card.addEventListener('dragend', () => {
+            card.classList.remove('dragging');
+            iconGrid.querySelectorAll('.drag-over').forEach(el => el.classList.remove('drag-over'));
+          });
+          card.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            e.dataTransfer.dropEffect = 'move';
+            if (dragSrcIndex !== realIndex) {
+              iconGrid.querySelectorAll('.drag-over').forEach(el => el.classList.remove('drag-over'));
+              card.classList.add('drag-over');
+            }
+          });
+          card.addEventListener('drop', async (e) => {
+            e.preventDefault();
+            const dropIndex = realIndex;
+            if (dragSrcIndex < 0 || dragSrcIndex === dropIndex) return;
+            const [moved] = appList.splice(dragSrcIndex, 1);
+            appList.splice(dropIndex, 0, moved);
+            dragSrcIndex = -1;
+            await API.saveApps(appList);
+            renderGrid(appList);
+          });
+        }
       }
 
       // "+ 新增应用" tile — always at the end, never filtered
@@ -845,10 +886,10 @@
       filterAndRender(searchInput.value);
     });
 
-    // ── Minimize ───────────────────────────────────────────────────────────────
-    document.getElementById('btnMinimize').addEventListener('click', () => {
-      API.minimizeWindow();
-    });
+    // ── Window controls ────────────────────────────────────────────────────────
+    document.getElementById('btnClose').addEventListener('click',    () => API.closeWindow());
+    document.getElementById('btnMinimize').addEventListener('click', () => API.minimizeWindow());
+    document.getElementById('btnRestore').addEventListener('click',  () => API.restoreWindow());
 
     // ── Init ───────────────────────────────────────────────────────────────────
     async function init() {

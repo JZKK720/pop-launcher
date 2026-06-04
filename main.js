@@ -59,7 +59,7 @@ function createWindow() {
     height:      620,
     transparent: true,
     frame:       false,
-    resizable:   false,
+    resizable:   true,
     skipTaskbar: false,
     show:        false,
     icon:        appIconPath,
@@ -100,10 +100,10 @@ function createTray() {
 
 // ── IPC: launch ───────────────────────────────────────────────────────────────
 ipcMain.handle('open-app', async (_e, filePath) => {
-  if (!filePath || /^https?:\/\//i.test(filePath)) return 'Invalid path';
-  const resolved = path.resolve(filePath);
-  if (!path.isAbsolute(resolved)) return 'Not an absolute path';
-  return await shell.openPath(resolved) || null;
+  const targetPath = typeof filePath === 'string' ? filePath.trim() : '';
+  if (!targetPath || /^https?:\/\//i.test(targetPath)) return 'Invalid path';
+  if (!path.isAbsolute(targetPath)) return 'Not an absolute path';
+  return await shell.openPath(path.normalize(targetPath)) || null;
 });
 
 ipcMain.handle('open-url', async (_e, url) => {
@@ -114,6 +114,15 @@ ipcMain.handle('open-url', async (_e, url) => {
 
 ipcMain.on('minimize-window', () => {
   mainWindow && mainWindow.minimize();
+});
+
+ipcMain.on('restore-window', () => {
+  if (!mainWindow) return;
+  mainWindow.isMaximized() ? mainWindow.unmaximize() : mainWindow.maximize();
+});
+
+ipcMain.on('close-window', () => {
+  mainWindow && mainWindow.hide();
 });
 
 // ── IPC: data ─────────────────────────────────────────────────────────────────

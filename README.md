@@ -3,7 +3,7 @@
 Windows desktop app-launch board. One-click access to local EXE programs and localhost URLs, with a glassmorphism UI.
 
 ![Platform](https://img.shields.io/badge/platform-Windows%20x64-blue)
-![Version](https://img.shields.io/badge/version-1.0.4-blue)
+![Version](https://img.shields.io/badge/version-1.0.5-blue)
 ![Electron](https://img.shields.io/badge/electron-34-47848F)
 ![License](https://img.shields.io/badge/license-Elastic%20License%202.0-orange)
 
@@ -32,7 +32,7 @@ Users still run **智方云cubecloud** through the Windows installer. The Docker
 ### Download (recommended)
 
 1. Go to [Releases](../../releases/latest)
-2. Download `智方云cubecloud Setup 1.0.4.exe`
+2. Download `智方云cubecloud Setup 1.0.5.exe`
 3. Run the installer — choose install directory, click Install
 4. Launch from Start Menu or Desktop shortcut: **智方云cubecloud**
 
@@ -60,7 +60,7 @@ npm start
 
 ```bash
 npm run build
-# Output: dist/智方云cubecloud Setup 1.0.4.exe
+# Output: dist/智方云cubecloud Setup 1.0.5.exe
 ```
 
 The native Windows packaging flow keeps using the repo-local `dist/` directory.
@@ -121,10 +121,51 @@ The container keeps generated installers in `artifacts/` and job metadata plus l
 
 The Docker build service uses its own internal build output directory, `docker-dist/`, inside the container image, so it does not overwrite the native `dist/` output used by `npm run build`.
 
-This means version `1.0.4` can be offered with both choices live at the same time:
+This means version `1.0.5` can be offered with both choices live at the same time:
 
 - Direct installer download for regular Windows users
 - Docker build service for automated, team-managed, or optionally webhook-driven installer delivery
+
+### Skill integration commands
+
+This repo includes helper scripts for integrating and validating personal Copilot skills.
+
+```bash
+# Kickoff integration (alias of skills:apply)
+npm run skills:kickoff
+
+# Apply integration (global skills + repo instruction)
+npm run skills:apply
+
+# Dry-run apply (no changes)
+npm run skills:apply:dry
+
+# Rollback integration
+npm run skills:rollback
+
+# Dry-run rollback (no changes)
+npm run skills:rollback:dry
+
+# Verify integration health
+npm run skills:verify
+```
+
+For implementation details, see `tools/skill-integration/README.md`.
+
+### Copilot Chat starters (single-line)
+
+```text
+Apply karpathy-guidelines, fix <bug> with smallest possible diff, no refactor, run only relevant checks, report changed files.
+Apply karpathy-guidelines, reproduce <issue> first, patch root cause only, explain each changed line.
+Apply understand, map architecture/modules/dependency hotspots/top risks, then propose safe edit plan with verification gates.
+Apply understand-chat, explain end-to-end flow for <feature> with call path, touched files, config points, and failure modes.
+Apply understand-domain, extract domains/flows/steps/dependencies for <business area> and change-risk points.
+Use repo frontend taste profile, redesign <UI area> with conservative and bold options, then implement selected one.
+Use repo frontend taste profile plus karpathy-guidelines, improve <UI area> with focused diff and no framework migration.
+Apply understand for analysis then karpathy-guidelines for implementation; output assumptions, risks, 3-step verified plan, then execute.
+Review branch for release risks by severity with file references, include regressions/docs drift, do not run build unless asked.
+Audit current changes for functional and rollout risk only, suggest minimal fixes, skip build/test unless explicitly requested.
+```
 
 ---
 

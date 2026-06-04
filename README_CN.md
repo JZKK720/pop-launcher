@@ -3,7 +3,7 @@
 Windows 桌面应用启动板。一键启动本地 EXE 程序或 localhost 网址，搭配玻璃拟态风格界面。
 
 ![平台](https://img.shields.io/badge/平台-Windows%20x64-blue)
-![版本](https://img.shields.io/badge/版本-1.0.4-blue)
+![版本](https://img.shields.io/badge/版本-1.0.5-blue)
 ![Electron](https://img.shields.io/badge/electron-34-47848F)
 ![许可证](https://img.shields.io/badge/许可证-Elastic%20License%202.0-orange)
 
@@ -32,7 +32,7 @@ Windows 桌面应用启动板。一键启动本地 EXE 程序或 localhost 网�
 ### 下载安装（推荐）
 
 1. 前往 [Releases 页面](../../releases/latest)
-2. 下载 `智方云cubecloud Setup 1.0.4.exe`
+2. 下载 `智方云cubecloud Setup 1.0.5.exe`
 3. 运行安装程序 — 选择安装目录，点击"安装"
 4. 从开始菜单或桌面快捷方式启动：**智方云cubecloud**
 
@@ -60,7 +60,7 @@ npm start
 
 ```bash
 npm run build
-# 输出路径：dist/智方云cubecloud Setup 1.0.4.exe
+# 输出路径：dist/智方云cubecloud Setup 1.0.5.exe
 ```
 
 原生 Windows 打包流程仍然使用仓库内的 `dist/` 目录。
@@ -121,10 +121,51 @@ curl -L "http://127.0.0.1:3001/artifacts/latest?token=change-me" --output cubecl
 
 Docker 构建服务会在容器内部使用独立的 `docker-dist/` 作为构建输出目录，因此不会覆盖 `npm run build` 使用的原生 `dist/` 输出。
 
-这意味着 `1.0.4` 版本可以同时提供两种选择：
+这意味着 `1.0.5` 版本可以同时提供两种选择：
 
 - 面向普通 Windows 用户的直接安装包下载
 - 面向自动化、团队管理或按需 webhook 触发场景的 Docker 构建服务
+
+### 技能集成命令
+
+仓库内置了用于个人 Copilot 技能集成与校验的辅助脚本。
+
+```bash
+# 一键启动集成（等同于 skills:apply）
+npm run skills:kickoff
+
+# 应用集成（全局技能 + 仓库指令）
+npm run skills:apply
+
+# 仅预演应用（不落盘）
+npm run skills:apply:dry
+
+# 回滚集成
+npm run skills:rollback
+
+# 仅预演回滚（不落盘）
+npm run skills:rollback:dry
+
+# 校验集成状态
+npm run skills:verify
+```
+
+实现细节见 `tools/skill-integration/README.md`。
+
+### Copilot Chat 启动短句（单行）
+
+```text
+应用 karpathy-guidelines，修复 <bug>，最小改动、不要重构，只跑相关检查并报告改动文件。
+应用 karpathy-guidelines，先复现 <issue>，只修根因，并说明每一处改动原因。
+应用 understand，输出架构/模块/依赖热点/风险点，再给出带验证门槛的安全改动计划。
+应用 understand-chat，解释 <feature> 的端到端流程，包含调用链、涉及文件、配置点、失败模式。
+应用 understand-domain，抽取 <业务域> 的领域/流程/步骤/依赖及改动风险点。
+使用仓库 frontend taste 配置，给出 <UI 区域> 的保守版与大胆版方案，再实现选中方案。
+使用仓库 frontend taste 配置 + karpathy-guidelines，优化 <UI 区域>，聚焦小 diff，不迁移框架。
+先用 understand 分析，再用 karpathy-guidelines 实施；先输出假设、风险、3 步验证计划，再执行。
+按严重级别评审当前分支发布风险并附文件引用，覆盖回归与文档漂移，除非明确要求否则不跑构建。
+仅审查当前改动的功能与上线风险，给出最小修复建议，除非明确要求否则不跑 build/test。
+```
 
 ---
 
