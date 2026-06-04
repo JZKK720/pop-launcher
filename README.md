@@ -3,7 +3,7 @@
 Windows desktop app-launch board. One-click access to local EXE programs and localhost URLs, with a glassmorphism UI.
 
 ![Platform](https://img.shields.io/badge/platform-Windows%20x64-blue)
-![Version](https://img.shields.io/badge/version-1.0.6-blue)
+![Version](https://img.shields.io/badge/version-1.0.7-blue)
 ![Electron](https://img.shields.io/badge/electron-34-47848F)
 ![License](https://img.shields.io/badge/license-Elastic%20License%202.0-orange)
 
@@ -21,6 +21,15 @@ Windows desktop app-launch board. One-click access to local EXE programs and loc
 ---
 
 ## Release Notes
+
+### 1.0.7
+
+- Reworked the launcher into a bottom-anchored compact dock and an expanded workspace mode
+- Updated the green control to toggle layout modes instead of using a generic maximize behavior
+- Made compact mode icon-only, with search available only in workspace mode
+- Added horizontal scrolling for compact mode and fixed duplicate icon rendering from overlapping async renders
+- Tuned compact dock sizing, hover-only traffic-light controls, and icon spacing for a tighter taskbar-like footprint
+- Added single-instance handling and moved Chromium session data to a temp path to eliminate recurring cache startup warnings
 
 ### 1.0.6
 
@@ -44,7 +53,7 @@ Users still run **智方云cubecloud** through the Windows installer. The Docker
 ### Download (recommended)
 
 1. Go to [Releases](../../releases/latest)
-2. Download `智方云cubecloud Setup 1.0.6.exe`
+2. Download `智方云cubecloud Setup 1.0.7.exe`
 3. Run the installer — choose install directory, click Install
 4. Launch from Start Menu or Desktop shortcut: **智方云cubecloud**
 
@@ -72,7 +81,7 @@ npm start
 
 ```bash
 npm run build
-# Output: dist/智方云cubecloud Setup 1.0.6.exe
+# Output: dist/智方云cubecloud Setup 1.0.7.exe
 ```
 
 The native Windows packaging flow keeps using the repo-local `dist/` directory.
@@ -133,7 +142,7 @@ The container keeps generated installers in `artifacts/` and job metadata plus l
 
 The Docker build service uses its own internal build output directory, `docker-dist/`, inside the container image, so it does not overwrite the native `dist/` output used by `npm run build`.
 
-This means version `1.0.6` can be offered with both choices live at the same time:
+This means version `1.0.7` can be offered with both choices live at the same time:
 
 - Direct installer download for regular Windows users
 - Docker build service for automated, team-managed, or optionally webhook-driven installer delivery

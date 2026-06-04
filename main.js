@@ -1,6 +1,6 @@
 const {
   app, BrowserWindow, ipcMain, shell, dialog,
-  Tray, Menu, nativeImage, protocol
+  Tray, Menu, nativeImage, protocol, screen
 } = require('electron');
 const path = require('path');
 const fs   = require('fs');
@@ -13,11 +13,40 @@ protocol.registerSchemesAsPrivileged([
   }
 ]);
 
+const runtimeSessionDataPath = path.join(app.getPath('temp'), 'cubecloud-session', String(process.pid));
+fs.mkdirSync(runtimeSessionDataPath, { recursive: true });
+app.setPath('sessionData', runtimeSessionDataPath);
+
+const hasSingleInstanceLock = app.requestSingleInstanceLock();
+
+if (!hasSingleInstanceLock) {
+  app.quit();
+}
+
 let mainWindow = null;
 let tray       = null;
 
+const WINDOW_LAYOUTS = {
+  compact: {
+    width: 364,
+    height: 84,
+    minWidth: 364,
+    minHeight: 84
+  },
+  workspace: {
+    width: 1380,
+    height: 820,
+    minWidth: 1100,
+    minHeight: 620
+  }
+};
+
+const WINDOW_BOTTOM_GAP = 12;
+let currentLayoutMode = 'compact';
+
 const userDataAppsPath = () => path.join(app.getPath('userData'), 'apps.json');
 const userDataIconsDir = () => path.join(app.getPath('userData'), 'icons');
+const uiStatePath      = () => path.join(app.getPath('userData'), 'ui-state.json');
 const bundledAppsPath  = path.join(__dirname, 'src', 'renderer', 'apps.json');
 const bundledIconsDir  = path.join(__dirname, 'src', 'renderer', 'icons');
 const appIconPath      = path.join(__dirname, 'assets', 'cubecloud-app-icon.png');
@@ -52,13 +81,58 @@ function seedUserData() {
   }
 }
 
+function readUiState() {
+  try {
+    return JSON.parse(fs.readFileSync(uiStatePath(), 'utf8'));
+  } catch {
+    return {};
+  }
+}
+
+function writeUiState(nextState) {
+  const currentState = readUiState();
+  fs.writeFileSync(uiStatePath(), JSON.stringify({ ...currentState, ...nextState }, null, 2), 'utf8');
+}
+
+function getLayoutPreset(mode = currentLayoutMode) {
+  return WINDOW_LAYOUTS[mode] || WINDOW_LAYOUTS.compact;
+}
+
+function getAnchoredBounds(mode, referenceBounds) {
+  const preset = getLayoutPreset(mode);
+  const display = screen.getDisplayMatching(referenceBounds || screen.getPrimaryDisplay().bounds);
+  const workArea = display.workArea;
+
+  const width = Math.max(
+    Math.min(preset.width, workArea.width - 24),
+    Math.min(preset.minWidth, workArea.width)
+  );
+  const height = Math.max(
+    Math.min(preset.height, workArea.height - 24),
+    Math.min(preset.minHeight, workArea.height)
+  );
+
+  const x = Math.round(workArea.x + ((workArea.width - width) / 2));
+  const y = Math.round(workArea.y + workArea.height - height - WINDOW_BOTTOM_GAP);
+  return { x, y, width, height };
+}
+
+function syncRendererLayoutMode() {
+  if (!mainWindow || mainWindow.isDestroyed()) return;
+  mainWindow.webContents.send('window-layout-changed', currentLayoutMode);
+}
+
 // ── Window ────────────────────────────────────────────────────────────────────
 function createWindow() {
+  const initialBounds = getAnchoredBounds(currentLayoutMode);
+
   mainWindow = new BrowserWindow({
-    width:       1060,
-    height:      620,
-    minWidth:    1060,
-    minHeight:   620,
+    x:           initialBounds.x,
+    y:           initialBounds.y,
+    width:       initialBounds.width,
+    height:      initialBounds.height,
+    minWidth:    WINDOW_LAYOUTS.compact.minWidth,
+    minHeight:   WINDOW_LAYOUTS.compact.minHeight,
     transparent: true,
     frame:       false,
     resizable:   true,
@@ -75,12 +149,48 @@ function createWindow() {
 
   mainWindow.loadFile(path.join(__dirname, 'src', 'renderer', 'index.html'));
 
-  mainWindow.once('ready-to-show', () => mainWindow.show());
+  mainWindow.once('ready-to-show', () => {
+    applyWindowLayout(currentLayoutMode, { persist: false, animate: false });
+    mainWindow.show();
+    syncRendererLayoutMode();
+  });
 
   // Minimize to tray instead of closing
   mainWindow.on('close', (e) => {
     e.preventDefault();
     mainWindow.hide();
+  });
+}
+
+function applyWindowLayout(mode, options = {}) {
+  if (!mainWindow) return;
+
+  const { persist = true, animate = true } = options;
+  const nextMode = WINDOW_LAYOUTS[mode] ? mode : 'compact';
+  currentLayoutMode = nextMode;
+
+  const bounds = getAnchoredBounds(nextMode, mainWindow.getBounds());
+  mainWindow.setBounds(bounds, animate);
+  mainWindow.setMinimumSize(
+    WINDOW_LAYOUTS.compact.minWidth,
+    WINDOW_LAYOUTS.compact.minHeight
+  );
+
+  if (persist) writeUiState({ layoutMode: nextMode });
+  syncRendererLayoutMode();
+}
+
+function showMainWindow() {
+  if (!mainWindow) return;
+  applyWindowLayout(currentLayoutMode, { persist: false, animate: false });
+  if (mainWindow.isMinimized()) mainWindow.restore();
+  mainWindow.show();
+  mainWindow.focus();
+}
+
+if (hasSingleInstanceLock) {
+  app.on('second-instance', () => {
+    showMainWindow();
   });
 }
 
@@ -91,13 +201,13 @@ function createTray() {
   tray.setToolTip('智方云cubecloud');
 
   const menu = Menu.buildFromTemplate([
-    { label: '打开 智方云cubecloud', click: () => { mainWindow.show(); mainWindow.focus(); } },
+    { label: '打开 智方云cubecloud', click: () => { showMainWindow(); } },
     { type: 'separator' },
     { label: '退出', click: () => { app.exit(0); } }
   ]);
 
   tray.setContextMenu(menu);
-  tray.on('double-click', () => { mainWindow.show(); mainWindow.focus(); });
+  tray.on('double-click', () => { showMainWindow(); });
 }
 
 // ── IPC: launch ───────────────────────────────────────────────────────────────
@@ -120,12 +230,14 @@ ipcMain.on('minimize-window', () => {
 
 ipcMain.on('restore-window', () => {
   if (!mainWindow) return;
-  mainWindow.isMaximized() ? mainWindow.unmaximize() : mainWindow.maximize();
+  applyWindowLayout(currentLayoutMode === 'compact' ? 'workspace' : 'compact');
 });
 
 ipcMain.on('close-window', () => {
   mainWindow && mainWindow.hide();
 });
+
+ipcMain.handle('get-window-layout', async () => currentLayoutMode);
 
 // ── IPC: data ─────────────────────────────────────────────────────────────────
 ipcMain.handle('get-apps', async () => {
@@ -218,6 +330,7 @@ app.whenReady().then(() => {
   });
 
   seedUserData();
+  currentLayoutMode = readUiState().layoutMode === 'workspace' ? 'workspace' : 'compact';
   createWindow();
   createTray();
 });

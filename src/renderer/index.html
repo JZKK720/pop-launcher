@@ -33,21 +33,20 @@
       height: 100vh;
       display: flex;
       justify-content: center;
-      align-items: center;
+      align-items: flex-end;
       background: transparent;
       font-family: system-ui, -apple-system, "Segoe UI", Roboto,
                    "PingFang SC", "Microsoft YaHei", Arial, sans-serif;
       overflow: hidden;
       -webkit-app-region: drag;
       user-select: none;
+      padding: 0 16px 14px;
     }
 
     /* ── Glass panel ── */
     .panel {
-      width: 980px;
-      max-width: calc(100vw - 60px);
-      height: 560px;
-      max-height: calc(100vh - 60px);
+      width: min(100%, 1360px);
+      height: calc(100vh - 12px);
       background: rgba(18, 42, 100, 0.85);
       border: 1px solid var(--glass-border);
       border-radius: 26px;
@@ -59,6 +58,9 @@
       overflow: hidden;
       -webkit-app-region: no-drag;
       animation: panelPop .38s cubic-bezier(.34,1.56,.64,1) both;
+      display: flex;
+      flex-direction: column;
+      transition: padding .18s ease, border-radius .18s ease;
     }
 
     /* ── Search bar ── */
@@ -66,6 +68,7 @@
       display: flex;
       align-items: center;
       gap: 12px;
+      flex: 0 0 auto;
     }
 
     .logo-wrap {
@@ -112,10 +115,11 @@
       margin-top: 26px;
       display: flex;
       flex-wrap: wrap;
-      justify-content: center;
+      justify-content: flex-start;
       gap: 22px 22px;
       align-content: flex-start;
-      height: 428px;
+      flex: 1 1 auto;
+      min-height: 0;
       overflow-y: auto;
       padding-bottom: 16px;
     }
@@ -260,6 +264,80 @@
       letter-spacing: .4px;
       pointer-events: none;
       user-select: none;
+    }
+
+    body[data-layout="compact"] {
+      padding: 0 8px 8px;
+    }
+
+    body[data-layout="compact"] .panel {
+      border-radius: 22px;
+      padding: 8px 12px;
+      justify-content: center;
+    }
+
+    body[data-layout="compact"] .search-wrap,
+    body[data-layout="compact"] .copyright {
+      display: none;
+    }
+
+    body[data-layout="compact"] .icon-grid {
+      margin-top: 0;
+      gap: 8px;
+      padding: 0 10px 0 0;
+      overflow-x: auto;
+      overflow-y: hidden;
+      flex-wrap: nowrap;
+      align-items: center;
+      align-content: center;
+      justify-content: flex-start;
+    }
+
+    body[data-layout="compact"] .icon-card {
+      width: 32px;
+      gap: 0;
+      flex: 0 0 auto;
+    }
+
+    body[data-layout="compact"] .icon-item {
+      width: 32px;
+      height: 32px;
+      border-radius: 10px;
+    }
+
+    body[data-layout="compact"] .tile-icon {
+      width: 18px;
+      height: 18px;
+    }
+
+    body[data-layout="compact"] .icon-name,
+    body[data-layout="compact"] .empty-tip {
+      display: none;
+    }
+
+    body[data-layout="compact"] .add-icon-svg {
+      width: 12px;
+      height: 12px;
+    }
+
+    body[data-layout="compact"] .win-controls {
+      top: 8px;
+      right: 8px;
+      gap: 4px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .14s ease;
+    }
+
+    body[data-layout="compact"] .wc-btn {
+      width: 6px;
+      height: 6px;
+    }
+
+    body[data-layout="compact"] .panel:hover .win-controls,
+    body[data-layout="compact"] .panel:focus-within .win-controls {
+      opacity: .78;
+      pointer-events: auto;
     }
 
     /* ── Context popup ── */
@@ -490,9 +568,9 @@
 
     <!-- ── Window controls ── -->
     <div class="win-controls">
-      <button class="wc-btn wc-close"    id="btnClose"    type="button" title="关闭到托盘"></button>
+      <button class="wc-btn wc-restore"  id="btnRestore"  type="button" title="放大/恢复窗口"></button>
       <button class="wc-btn wc-minimize" id="btnMinimize" type="button" title="最小化"></button>
-      <button class="wc-btn wc-restore"  id="btnRestore"  type="button" title="恢复/调整窗口"></button>
+      <button class="wc-btn wc-close"    id="btnClose"    type="button" title="关闭到托盘"></button>
     </div>
 
     <span class="copyright">&copy; 智方云 cubecloud.io</span>
@@ -567,6 +645,8 @@
     let pendingIconSrc = '';   // full local path of chosen icon (before save)
     let pendingIconRel = '';   // relative path after copy  (icons/filename)
     let dragSrcIndex   = -1;   // appList index being dragged (-1 = none)
+    let currentLayout  = 'compact';
+    let renderToken    = 0;
 
     // Colors that were old hardcoded defaults — treated as "no custom color"
     const OLD_DEFAULTS = new Set(['#1a1a1a','#2a2a2a','#1e3a8a','#2d4fb8']);
@@ -597,6 +677,15 @@
       tipTimer = setTimeout(() => { statusTip.style.display = 'none'; }, 2500);
     }
 
+    function applyLayoutMode(layoutMode) {
+      currentLayout = layoutMode === 'workspace' ? 'workspace' : 'compact';
+      document.body.dataset.layout = currentLayout;
+      if (currentLayout === 'compact') {
+        searchInput.value = '';
+        renderGrid(appList);
+      }
+    }
+
     // ── Icon URL resolution ────────────────────────────────────────────────────
     async function resolveIconUrl(relativePath) {
       if (!relativePath) return '';
@@ -606,6 +695,7 @@
 
     // ── Render grid ────────────────────────────────────────────────────────────
     async function renderGrid(list) {
+      const thisRender = ++renderToken;
       iconGrid.innerHTML = '';
 
       if (!list.length) {
@@ -620,6 +710,7 @@
         const realIndex = appList.indexOf(appEntry);
 
         const iconUrl = await resolveIconUrl(appEntry.icon);
+        if (thisRender !== renderToken) return;
         const card = document.createElement('div');
         card.className = 'icon-card';
 
@@ -643,17 +734,18 @@
         img.src = iconUrl || '';
         img.onerror = function () { this.style.display = 'none'; };
 
-        const label = document.createElement('div');
-        label.className = 'icon-name';
-        label.textContent = appEntry.name || '';
-
         item.appendChild(img);
         card.appendChild(item);
-        card.appendChild(label);
+        if (currentLayout !== 'compact') {
+          const label = document.createElement('div');
+          label.className = 'icon-name';
+          label.textContent = appEntry.name || '';
+          card.appendChild(label);
+        }
         iconGrid.appendChild(card);
 
         // Drag-to-reorder — only when list is unfiltered
-        if (list === appList) {
+        if (list === appList && currentLayout !== 'compact') {
           card.draggable = true;
           card.addEventListener('dragstart', (e) => {
             dragSrcIndex = realIndex;
@@ -686,6 +778,8 @@
         }
       }
 
+      if (thisRender !== renderToken) return;
+
       // "+ 新增应用" tile — always at the end, never filtered
       const addCard = document.createElement('div');
       addCard.className = 'icon-card add-tile';
@@ -699,12 +793,13 @@
           <path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>
         </svg>`;
 
-      const addLabel = document.createElement('div');
-      addLabel.className = 'icon-name';
-      addLabel.textContent = '新增应用';
-
       addCard.appendChild(addItem);
-      addCard.appendChild(addLabel);
+      if (currentLayout !== 'compact') {
+        const addLabel = document.createElement('div');
+        addLabel.className = 'icon-name';
+        addLabel.textContent = '新增应用';
+        addCard.appendChild(addLabel);
+      }
       iconGrid.appendChild(addCard);
     }
 
@@ -725,6 +820,11 @@
 
     // ── Search ─────────────────────────────────────────────────────────────────
     function filterAndRender(kw) {
+      if (currentLayout === 'compact') {
+        renderGrid(appList);
+        return;
+      }
+
       const q = (kw || '').trim().toLowerCase();
       const filtered = !q
         ? appList
@@ -738,6 +838,19 @@
 
     searchInput.addEventListener('input', function () {
       filterAndRender(this.value);
+    });
+
+    iconGrid.addEventListener('wheel', (e) => {
+      if (currentLayout !== 'compact') return;
+      e.preventDefault();
+      const delta = Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : e.deltaY;
+      iconGrid.scrollLeft += delta;
+    }, { passive: false });
+
+    iconGrid.addEventListener('mousedown', (e) => {
+      if (currentLayout !== 'compact') return;
+      if (e.button !== 1) return;
+      e.preventDefault();
     });
 
     // ── Context popup ──────────────────────────────────────────────────────────
@@ -896,6 +1009,8 @@
 
     // ── Init ───────────────────────────────────────────────────────────────────
     async function init() {
+      applyLayoutMode(await API.getWindowLayout());
+      API.onWindowLayoutChanged(applyLayoutMode);
       appList = await API.getApps();
       renderGrid(appList);
     }
