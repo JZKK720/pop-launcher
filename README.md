@@ -3,7 +3,7 @@
 Windows desktop app-launch board. One-click access to local EXE programs and localhost URLs, with a glassmorphism UI.
 
 ![Platform](https://img.shields.io/badge/platform-Windows%20x64-blue)
-![Version](https://img.shields.io/badge/version-1.0.7-blue)
+![Version](https://img.shields.io/badge/version-1.0.8-blue)
 ![Electron](https://img.shields.io/badge/electron-34-47848F)
 ![License](https://img.shields.io/badge/license-Elastic%20License%202.0-orange)
 
@@ -21,6 +21,11 @@ Windows desktop app-launch board. One-click access to local EXE programs and loc
 ---
 
 ## Release Notes
+
+### 1.0.8
+
+- Fixed compact dock regression where the `+ Add` tile could appear and expand interaction hit area in minimized taskbar mode
+- Compact mode now hides the add tile entirely; adding apps remains available in workspace mode
 
 ### 1.0.7
 
@@ -83,7 +88,7 @@ Users still run **智方云cubecloud** through the Windows installer. The Docker
 ### Download (recommended)
 
 1. Go to [Releases](../../releases/latest)
-2. Download `智方云cubecloud Setup 1.0.7.exe`
+2. Download `智方云cubecloud Setup 1.0.8.exe`
 3. Run the installer — choose install directory, click Install
 4. Launch from Start Menu or Desktop shortcut: **智方云cubecloud**
 
@@ -111,7 +116,7 @@ npm start
 
 ```bash
 npm run build
-# Output: dist/智方云cubecloud Setup 1.0.7.exe
+# Output: dist/智方云cubecloud Setup 1.0.8.exe
 ```
 
 The native Windows packaging flow keeps using the repo-local `dist/` directory.
@@ -172,7 +177,7 @@ The container keeps generated installers in `artifacts/` and job metadata plus l
 
 The Docker build service uses its own internal build output directory, `docker-dist/`, inside the container image, so it does not overwrite the native `dist/` output used by `npm run build`.
 
-This means version `1.0.7` can be offered with both choices live at the same time:
+This means version `1.0.8` can be offered with both choices live at the same time:
 
 - Direct installer download for regular Windows users
 - Docker build service for automated, team-managed, or optionally webhook-driven installer delivery

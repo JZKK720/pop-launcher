@@ -1,7 +1,7 @@
 {
   "name": "cubecloud",
   "productName": "智方云cubecloud",
-  "version": "1.0.7",
+  "version": "1.0.8",
   "description": "智方云cubecloud desktop app-access board",
   "author": "智方云 cubecloud.io",
   "main": "main.js",
@@ -39,7 +39,14 @@
       "!assets/figma/**"
     ],
     "win": {
-      "target": [{ "target": "nsis", "arch": ["x64"] }],
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
       "icon": "assets/cubecloud-app-icon.ico"
     },
     "nsis": {

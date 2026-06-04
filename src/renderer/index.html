@@ -780,7 +780,9 @@
 
       if (thisRender !== renderToken) return;
 
-      // "+ 新增应用" tile — always at the end, never filtered
+      // "+ 新增应用" tile — workspace only
+      if (currentLayout === 'compact') return;
+
       const addCard = document.createElement('div');
       addCard.className = 'icon-card add-tile';
 
