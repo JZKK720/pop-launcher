@@ -41,6 +41,36 @@ Windows desktop app-launch board. One-click access to local EXE programs and loc
 
 ---
 
+## Versioning Policy
+
+This repo follows Semantic Versioning (`MAJOR.MINOR.PATCH`) with a strict release decision rule:
+
+- PATCH (`x.y.Z`): singular bug fix, regression fix, or internal hardening with no new user-facing feature or workflow change
+- MINOR (`x.Y.z`): new feature, UI/UX redesign, renderer/layout behavior update, new IPC capability, or build-service/install flow enhancement
+- MAJOR (`X.y.z`): breaking behavior or compatibility change (for example user-data format break, unsupported older Windows target, or migration required)
+
+Quick decision checklist before tagging:
+
+1. Is this only a focused fix with no new capability? Use PATCH.
+2. Does this add/change user-visible behavior or design? Use MINOR.
+3. Does this break compatibility or require migration? Use MAJOR.
+
+Project-specific examples:
+
+- Single path-validation fix in main process: PATCH
+- Compact/workspace mode redesign with rerender behavior changes: MINOR
+- Data schema migration that needs conversion logic: MAJOR
+
+Release metadata must stay aligned in the same PR/commit:
+
+- `package.json` version
+- `README.md` release note and installer filename/version text
+- `README_CN.md` release note and installer filename/version text
+- `docker-compose.yml` image tag when build-service image version is surfaced
+- Run `npm run sync:release-metadata` before build/release
+
+---
+
 ## Installation
 
 ### Release options
