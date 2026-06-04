@@ -683,7 +683,9 @@
       if (currentLayout === 'compact') {
         searchInput.value = '';
         renderGrid(appList);
+        return;
       }
+      filterAndRender(searchInput.value);
     }
 
     // ── Icon URL resolution ────────────────────────────────────────────────────
