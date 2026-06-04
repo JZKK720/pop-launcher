@@ -744,8 +744,8 @@
         }
         iconGrid.appendChild(card);
 
-        // Drag-to-reorder — only when list is unfiltered
-        if (list === appList && currentLayout !== 'compact') {
+        // Drag-to-reorder — enabled in workspace mode (including filtered search results)
+        if (currentLayout !== 'compact') {
           card.draggable = true;
           card.addEventListener('dragstart', (e) => {
             dragSrcIndex = realIndex;
@@ -773,7 +773,7 @@
             appList.splice(dropIndex, 0, moved);
             dragSrcIndex = -1;
             await API.saveApps(appList);
-            renderGrid(appList);
+            filterAndRender(searchInput.value);
           });
         }
       }

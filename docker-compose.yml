@@ -3,7 +3,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    image: cubecloud-build-service:1.0.8
+    image: cubecloud-build-service:1.0.9
     ports:
       - "${BUILD_SERVICE_PORT:-3001}:3001"
     environment:

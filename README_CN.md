@@ -3,7 +3,7 @@
 Windows 桌面应用启动板。一键启动本地 EXE 程序或 localhost 网址，搭配玻璃拟态风格界面。
 
 ![平台](https://img.shields.io/badge/平台-Windows%20x64-blue)
-![版本](https://img.shields.io/badge/版本-1.0.8-blue)
+![版本](https://img.shields.io/badge/版本-1.0.9-blue)
 ![Electron](https://img.shields.io/badge/electron-34-47848F)
 ![许可证](https://img.shields.io/badge/许可证-Elastic%20License%202.0-orange)
 
@@ -21,6 +21,11 @@ Windows 桌面应用启动板。一键启动本地 EXE 程序或 localhost 网�
 ---
 
 ## 发布说明
+
+### 1.0.9
+
+- 在工作区模式下，即使处于搜索筛选结果，也可继续拖拽排序
+- 拖拽排序完成后保留当前搜索筛选状态
 
 ### 1.0.8
 
@@ -88,7 +93,7 @@ Windows 桌面应用启动板。一键启动本地 EXE 程序或 localhost 网�
 ### 下载安装（推荐）
 
 1. 前往 [Releases 页面](../../releases/latest)
-2. 下载 `智方云cubecloud Setup 1.0.8.exe`
+2. 下载 `智方云cubecloud Setup 1.0.9.exe`
 3. 运行安装程序 — 选择安装目录，点击"安装"
 4. 从开始菜单或桌面快捷方式启动：**智方云cubecloud**
 
@@ -116,7 +121,7 @@ npm start
 
 ```bash
 npm run build
-# 输出路径：dist/智方云cubecloud Setup 1.0.8.exe
+# 输出路径：dist/智方云cubecloud Setup 1.0.9.exe
 ```
 
 原生 Windows 打包流程仍然使用仓库内的 `dist/` 目录。
@@ -177,7 +182,7 @@ curl -L "http://127.0.0.1:3001/artifacts/latest?token=change-me" --output cubecl
 
 Docker 构建服务会在容器内部使用独立的 `docker-dist/` 作为构建输出目录，因此不会覆盖 `npm run build` 使用的原生 `dist/` 输出。
 
-这意味着 `1.0.8` 版本可以同时提供两种选择：
+这意味着 `1.0.9` 版本可以同时提供两种选择：
 
 - 面向普通 Windows 用户的直接安装包下载
 - 面向自动化、团队管理或按需 webhook 触发场景的 Docker 构建服务
