@@ -568,6 +568,9 @@
     let pendingIconRel = '';   // relative path after copy  (icons/filename)
     let dragSrcIndex   = -1;   // appList index being dragged (-1 = none)
 
+    // Colors that were old hardcoded defaults — treated as "no custom color"
+    const OLD_DEFAULTS = new Set(['#1a1a1a','#2a2a2a','#1e3a8a','#2d4fb8']);
+
     // ── DOM refs ───────────────────────────────────────────────────────────────
     const iconGrid       = document.getElementById('iconGrid');
     const searchInput    = document.getElementById('searchInput');
@@ -623,7 +626,6 @@
         const item = document.createElement('div');
         item.className = 'icon-item';
         // Only apply custom color if the user explicitly set one (not an old default)
-        const OLD_DEFAULTS = new Set(['#1a1a1a','#2a2a2a','#1e3a8a','#2d4fb8']);
         const c = appEntry.color;
         if (c && !OLD_DEFAULTS.has(c)) item.style.background = c;
         item.title = appEntry.name || '';
@@ -659,6 +661,7 @@
             setTimeout(() => card.classList.add('dragging'), 0);
           });
           card.addEventListener('dragend', () => {
+            dragSrcIndex = -1;
             card.classList.remove('dragging');
             iconGrid.querySelectorAll('.drag-over').forEach(el => el.classList.remove('drag-over'));
           });

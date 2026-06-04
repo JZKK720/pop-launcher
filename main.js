@@ -57,6 +57,8 @@ function createWindow() {
   mainWindow = new BrowserWindow({
     width:       1060,
     height:      620,
+    minWidth:    1060,
+    minHeight:   620,
     transparent: true,
     frame:       false,
     resizable:   true,
@@ -183,9 +185,10 @@ ipcMain.handle('copy-icon', async (_e, srcPath) => {
 
 ipcMain.handle('get-icon-path', async (_e, relativePath) => {
   if (!relativePath) return null;
-  // Strip traversal attempts
-  const safe     = relativePath.replace(/\.\./g, '').replace(/^[/\\]+/, '');
-  const fullPath = path.join(app.getPath('userData'), safe);
+  // Resolve to an absolute path and confirm it stays within userData
+  const userData = app.getPath('userData');
+  const fullPath = path.resolve(userData, relativePath);
+  if (!fullPath.startsWith(userData + path.sep) && fullPath !== userData) return null;
   try {
     const data = fs.readFileSync(fullPath);
     const ext  = path.extname(fullPath).toLowerCase().slice(1);

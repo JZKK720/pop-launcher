@@ -3,7 +3,7 @@
 Windows desktop app-launch board. One-click access to local EXE programs and localhost URLs, with a glassmorphism UI.
 
 ![Platform](https://img.shields.io/badge/platform-Windows%20x64-blue)
-![Version](https://img.shields.io/badge/version-1.0.5-blue)
+![Version](https://img.shields.io/badge/version-1.0.6-blue)
 ![Electron](https://img.shields.io/badge/electron-34-47848F)
 ![License](https://img.shields.io/badge/license-Elastic%20License%202.0-orange)
 
@@ -20,6 +20,18 @@ Windows desktop app-launch board. One-click access to local EXE programs and loc
 
 ---
 
+## Release Notes
+
+### 1.0.6
+
+- Added macOS-style traffic-light window controls (minimize, restore/maximize, close-to-tray)
+- Added drag-to-reorder support for launcher app tiles and persisted order to user data
+- Fixed window sizing safety for the frameless transparent window with enforced minimum bounds
+- Hardened icon file path handling in IPC to prevent traversal outside `%AppData%`
+- Fixed drag cancellation state cleanup and reduced per-render allocation overhead in tile rendering
+
+---
+
 ## Installation
 
 ### Release options
@@ -32,7 +44,7 @@ Users still run **智方云cubecloud** through the Windows installer. The Docker
 ### Download (recommended)
 
 1. Go to [Releases](../../releases/latest)
-2. Download `智方云cubecloud Setup 1.0.5.exe`
+2. Download `智方云cubecloud Setup 1.0.6.exe`
 3. Run the installer — choose install directory, click Install
 4. Launch from Start Menu or Desktop shortcut: **智方云cubecloud**
 
@@ -60,7 +72,7 @@ npm start
 
 ```bash
 npm run build
-# Output: dist/智方云cubecloud Setup 1.0.5.exe
+# Output: dist/智方云cubecloud Setup 1.0.6.exe
 ```
 
 The native Windows packaging flow keeps using the repo-local `dist/` directory.
@@ -121,7 +133,7 @@ The container keeps generated installers in `artifacts/` and job metadata plus l
 
 The Docker build service uses its own internal build output directory, `docker-dist/`, inside the container image, so it does not overwrite the native `dist/` output used by `npm run build`.
 
-This means version `1.0.5` can be offered with both choices live at the same time:
+This means version `1.0.6` can be offered with both choices live at the same time:
 
 - Direct installer download for regular Windows users
 - Docker build service for automated, team-managed, or optionally webhook-driven installer delivery
